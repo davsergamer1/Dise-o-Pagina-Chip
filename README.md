@@ -2,7 +2,8 @@
 
 Proyecto demo: aplicación web en **Flask** que recibe lecturas biométricas (colesterol, glucosa, temperatura) enviadas por un dispositivo (chip/simulador), con autenticación de usuarios y almacenamiento en **MongoDB Atlas**.
 
-![Dashboard preview](https://via.placeholder.com/800x400.png?text=Dashboard+RefriTati+Preview)  
+![Dashboard preview]<img width="1734" height="858" alt="image" src="https://github.com/user-attachments/assets/f87c8698-ec7a-470a-8aa2-611c4ad578b3" />
+  
 *(próximamente: captura real del dashboard)*
 
 ## Características principales
