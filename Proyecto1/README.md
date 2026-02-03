@@ -1,4 +1,4 @@
-# RefriTati — Sensor Dashboard (Flask + MongoDB Atlas)
+#  Sensor Dashboard (Flask + MongoDB Atlas)
 
 Proyecto demo: aplicación web en Flask que recibe lecturas de un *chip* (colesterol, azúcar, fiebre),
 con autenticación (registro / login) usando MongoDB Atlas como base de datos.
