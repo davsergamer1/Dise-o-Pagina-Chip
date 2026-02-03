@@ -76,52 +76,12 @@ Abre en el navegador:
 Endpoints principales
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 
 
 RutaMétodoDescripciónAutenticación/GETPágina principal (redirige a login)No/registerGET/POSTRegistro de usuarioNo/loginGET/POSTInicio de sesiónNo/dashboardGETPanel con lecturas del usuarioSí/api/readingsPOSTRecibe lecturas del dispositivo (JSON)No*/api/readingsGETObtiene lecturas del usuario autenticadoSí
+
 * Actualmente la ruta POST es pública (para facilitar pruebas con el chip).
 En producción se recomienda protegerla con token por dispositivo o IP.
 Ejemplo de payload para /api/readings (POST):
@@ -131,6 +91,7 @@ JSON{
   "sugar": 95.2,
   "fever": 37.1
 }
+
 Seguridad – Notas importantes
 Estado actual (demo):
 
