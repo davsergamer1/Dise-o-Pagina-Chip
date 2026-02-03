@@ -1,0 +1,370 @@
+{% extends 'base.html' %}
+{% block title %}Dashboard · Sensor Health{% endblock %}
+{% block content %}
+
+<!-- Encabezado superior -->
+<div class="mb-6 flex flex-wrap items-center justify-between gap-4">
+  <div>
+    <h2 class="text-2xl font-bold text-slate-100">📊 Panel de control</h2>
+    <p class="text-sm text-slate-400">
+      Monitoreo en tiempo real — lecturas automáticas cada {{ user.interval }} segundos
+    </p>
+  </div>
+
+  <!-- Perfil arriba a la derecha -->
+  <div class="relative ml-auto">
+    <button id="profileMenuButton"
+      class="flex items-center gap-3 px-3 py-2 rounded-2xl bg-slate-800 hover:bg-slate-700 transition border border-slate-700">
+      
+      {% if user.profile_pic %}
+        <img src="{{ user.profile_pic }}" alt="avatar"
+          class="w-10 h-10 rounded-full object-cover border border-emerald-500 shadow-md">
+      {% else %}
+        <img src="{{ url_for('static', filename='img/avatar.png') }}" alt="avatar"
+          class="w-10 h-10 rounded-full object-cover border border-slate-600">
+      {% endif %}
+      
+      <span class="font-semibold text-slate-200">{{ user.username }}</span>
+      <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+        <path d="M19 9l-7 7-7-7" />
+      </svg>
+    </button>
+
+    <!-- Dropdown -->
+    <div id="profileDropdown"
+      class="hidden absolute right-0 mt-2 w-56 bg-slate-900 rounded-xl shadow-lg border border-slate-700 z-20 overflow-hidden">
+      <a href="{{ url_for('profile') }}" class="block px-4 py-3 text-slate-200 hover:bg-slate-800">👤 Ver perfil</a>
+      <a href="{{ url_for('profile') }}#settings" class="block px-4 py-3 text-slate-200 hover:bg-slate-800">⚙️ Configuración</a>
+      <a href="{{ url_for('logout') }}" class="block px-4 py-3 text-red-400 hover:bg-slate-800">🚪 Cerrar sesión</a>
+    </div>
+  </div>
+</div>
+
+<!-- Controles -->
+<div class="flex flex-wrap gap-3 mb-8">
+  <button id="toggleSave" class="px-5 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-600 transition font-semibold text-slate-900">
+    Guardar historial: OFF
+  </button>
+  <button id="manualSave" class="px-5 py-2.5 rounded-xl bg-indigo-500 hover:bg-indigo-600 transition font-semibold text-slate-100">
+    Guardar lectura actual
+  </button>
+  <button id="simulateAlert" class="px-5 py-2.5 rounded-xl bg-red-500 hover:bg-red-600 transition font-semibold text-slate-100">
+    Simular alerta
+  </button>
+  <button id="downloadPDF" class="px-5 py-2.5 rounded-xl bg-sky-500 hover:bg-sky-600 transition font-semibold text-slate-100">
+    Descargar PDF
+  </button>
+</div>
+
+<!-- Tarjetas -->
+<section class="grid grid-cols-1 md:grid-cols-3 gap-5 mb-8">
+  <div class="p-5 rounded-2xl glass text-center shadow-lg border border-slate-800">
+    <div class="text-sm text-slate-400">Colesterol (mg/dL)</div>
+    <div id="cholesterol" class="text-4xl font-semibold mt-3 text-slate-200">—</div>
+    <div class="text-xs text-slate-500 mt-1">Normal: 125 - 200</div>
+  </div>
+  <div class="p-5 rounded-2xl glass text-center shadow-lg border border-slate-800">
+    <div class="text-sm text-slate-400">Azúcar (mg/dL)</div>
+    <div id="sugar" class="text-4xl font-semibold mt-3 text-slate-200">—</div>
+    <div class="text-xs text-slate-500 mt-1">Normal: 70 - 140</div>
+  </div>
+  <div class="p-5 rounded-2xl glass text-center shadow-lg border border-slate-800">
+    <div class="text-sm text-slate-400">Temperatura (°C)</div>
+    <div id="fever" class="text-4xl font-semibold mt-3 text-slate-200">—</div>
+    <div class="text-xs text-slate-500 mt-1">Normal: 36 - 37.5</div>
+  </div>
+</section>
+
+<!-- Alertas -->
+<section id="alerts" class="mb-6"></section>
+
+<!-- Historial -->
+<section id="history" class="grid grid-cols-1 gap-4 mb-12">
+  <h3 class="font-semibold mb-3 text-slate-100">📜 Historial reciente</h3>
+  <div id="reading-list" class="space-y-2 text-slate-200 text-sm"></div>
+</section>
+
+<!-- ⭐ FEEDBACK SECTION -->
+<section id="feedback" class="p-6 rounded-2xl bg-slate-800/50 border border-slate-700 shadow-lg mb-16">
+  <h3 class="text-2xl font-bold text-emerald-400 mb-4">💬 Comparte tu opinión</h3>
+  <p class="text-slate-300 mb-4">Cuéntanos cómo ha sido tu experiencia con Sensor Health y califica el servicio.</p>
+
+  <form action="{{ url_for('feedback') }}" method="POST" class="space-y-4">
+    <div id="starRating" class="flex items-center justify-center gap-1 text-3xl text-slate-500 cursor-pointer">
+  {% for i in range(1, 6) %}
+    <input type="radio" id="star{{ i }}" name="rating" value="{{ i }}" class="hidden" required>
+    <label for="star{{ i }}" data-value="{{ i }}" class="transition-transform duration-150 hover:scale-110">★</label>
+  {% endfor %}
+</div>
+
+<style>
+  /* Cambia todas las estrellas a color base */
+  #starRating label {
+    color: #475569; /* slate-500 */
+    transition: color 0.2s ease, transform 0.15s ease;
+  }
+
+  /* Hover y selección progresiva */
+  #starRating label:hover,
+  #starRating label:hover ~ label {
+    color: #facc15; /* amarillo suave */
+  }
+
+  /* Cuando está seleccionado */
+  #starRating input:checked ~ label {
+    color: #fbbf24;
+  }
+
+  /* Animación suave al marcar */
+  #starRating label:active {
+    transform: scale(1.2);
+  }
+</style>
+
+<script>
+  // Animación progresiva: al pasar el mouse, se iluminan todas las anteriores
+  const stars = document.querySelectorAll("#starRating label");
+  const radios = document.querySelectorAll("#starRating input");
+
+  stars.forEach((star, index) => {
+    star.addEventListener("mouseenter", () => {
+      stars.forEach((s, i) => s.style.color = i <= index ? "#facc15" : "#475569");
+    });
+
+    star.addEventListener("mouseleave", () => {
+      const checked = [...radios].find(r => r.checked);
+      if (checked) {
+        const val = parseInt(checked.value);
+        stars.forEach((s, i) => s.style.color = i < val ? "#facc15" : "#475569");
+      } else {
+        stars.forEach(s => s.style.color = "#475569");
+      }
+    });
+
+    star.addEventListener("click", () => {
+      radios[index].checked = true;
+      stars.forEach((s, i) => s.style.color = i <= index ? "#facc15" : "#475569");
+    });
+  });
+</script>
+
+
+    <textarea name="comment" rows="3" class="w-full p-3 rounded-xl bg-slate-900 border border-slate-700 text-slate-200 focus:outline-none focus:border-emerald-400" placeholder="Escribe tu opinión aquí..." required></textarea>
+    
+    <button type="submit" class="w-full px-5 py-3 rounded-xl bg-emerald-500 hover:bg-emerald-600 transition font-semibold text-slate-900">
+      Enviar comentario ⭐
+    </button>
+  </form>
+
+  <hr class="my-6 border-slate-700">
+
+  <h4 class="text-lg font-semibold text-slate-200 mb-3">🗣 Opiniones recientes</h4>
+  <div class="space-y-3">
+    {% for f in feedbacks %}
+    <div class="p-4 rounded-xl glass border border-slate-700">
+      <div class="flex items-center justify-between mb-1">
+        <span class="font-semibold text-emerald-400">{{ f.username }}</span>
+        <span class="text-yellow-400">{{ "★" * f.rating }}</span>
+      </div>
+      <p class="text-slate-300 text-sm">{{ f.comment }}</p>
+    </div>
+    {% else %}
+    <p class="text-slate-500 text-sm">Aún no hay comentarios. ¡Sé el primero en opinar!</p>
+    {% endfor %}
+  </div>
+</section>
+
+<!-- 🔴 SECCIÓN EXCLUSIVA PARA ADMINISTRADORES -->
+{% if user.role == 'admin' %}
+<section class="mt-12 p-6 rounded-2xl bg-red-500/10 border border-red-600 shadow-lg">
+  <h3 class="text-2xl font-bold text-red-400 mb-3">🛠️ Herramientas de administrador</h3>
+  <p class="text-slate-300 mb-5">
+    Bienvenido, {{ user.username }}. Aquí puedes gestionar el sistema y administrar usuarios.
+  </p>
+
+  <div class="flex flex-wrap gap-4">
+    <button id="globalAlertBtn"
+      class="px-5 py-2.5 rounded-xl bg-red-600 hover:bg-red-700 transition font-semibold text-slate-100">
+      🚨 Enviar alerta global
+    </button>
+    <button id="viewUsersBtn"
+      class="px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 transition font-semibold text-slate-100">
+      👥 Ver usuarios registrados
+    </button>
+    <button id="makeAdminBtn"
+      class="px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 transition font-semibold text-slate-100">
+      🔑 Dar privilegios de admin
+    </button>
+  </div>
+
+  <div id="adminConsole" class="mt-6 text-sm text-slate-300 bg-slate-800/60 rounded-xl p-4 border border-slate-700 hidden"></div>
+</section>
+{% endif %}
+
+<!-- Footer -->
+<footer class="mt-20 py-6 text-center text-slate-400 border-t border-slate-700">
+  <div class="flex flex-wrap justify-center gap-4 mb-2">
+    <a href="{{ url_for('about') }}" class="hover:text-emerald-400 transition">Quiénes somos</a>
+    <a href="{{ url_for('pqr') }}" class="hover:text-emerald-400 transition">PQR</a>
+  </div>
+  <div class="text-sm">
+    © 2025 Sensor Health — Creado por <span class="text-emerald-400 font-semibold">Harvey Castellanos</span>
+  </div>
+</footer>
+
+<!-- Librerías PDF -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
+
+<script>
+  // === PERFIL ===
+  const profileBtn = document.getElementById('profileMenuButton');
+  const profileMenu = document.getElementById('profileDropdown');
+  profileBtn.addEventListener('click', () => profileMenu.classList.toggle('hidden'));
+  window.addEventListener('click', e => { if (!profileBtn.contains(e.target)) profileMenu.classList.add('hidden'); });
+
+  let readings = [];
+  let autoSave = false;
+  let lastAlertTime = 0;
+  const readingInterval = {{ user.interval | default(5) }} * 1000;
+
+  function updateValue(id, value, min, max) {
+    const el = document.getElementById(id);
+    el.innerText = value.toFixed(1);
+    const isAlert = value < min || value > max;
+    el.className = `text-4xl font-semibold mt-3 ${isAlert ? 'text-red-400' : 'text-emerald-400'}`;
+    return isAlert;
+  }
+
+  async function generateReading(forcedAlert = false) {
+    const now = Date.now();
+    const shouldAlert = forcedAlert || (Math.random() < 0.15 && now - lastAlertTime > 8000);
+    const reading = {
+      device_id: "chip-simulador",
+      cholesterol: shouldAlert ? 240 : 120 + Math.random() * 120,
+      sugar: shouldAlert ? 190 : 60 + Math.random() * 120,
+      fever: shouldAlert ? 39 : 35.5 + Math.random() * 3,
+      timestamp: new Date().toISOString()
+    };
+
+    const c = updateValue("cholesterol", reading.cholesterol, 125, 200);
+    const s = updateValue("sugar", reading.sugar, 70, 140);
+    const f = updateValue("fever", reading.fever, 36, 37.5);
+    const isAlert = c || s || f;
+
+    if (isAlert) {
+      showAlert("⚠️ Alerta: valores fuera de rango");
+      lastAlertTime = now;
+    }
+
+    if (autoSave || isAlert) await saveReading(reading);
+    readings.unshift({ ...reading, alert: isAlert });
+    updateHistory();
+  }
+
+  function showAlert(msg) {
+    const alertBox = document.getElementById("alerts");
+    alertBox.innerHTML = `<div class="p-4 rounded-2xl bg-red-500/20 border border-red-500 text-red-300 font-semibold shadow-lg">${msg}</div>`;
+    setTimeout(() => alertBox.innerHTML = "", 4000);
+  }
+
+  async function saveReading(reading) {
+    try {
+      await fetch("/api/readings", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ...reading, user_id: "{{ user._id }}" })
+      });
+    } catch (err) {
+      console.error("Error guardando lectura:", err);
+    }
+  }
+
+  function updateHistory() {
+    const list = document.getElementById("reading-list");
+    list.innerHTML = readings
+      .slice(0, 10)
+      .map(r => `
+        <div class="p-3 rounded-xl glass flex justify-between items-center ${r.alert ? 'border border-red-500' : 'border border-slate-700'}">
+          <div>
+            <div class="text-xs text-slate-500">${new Date(r.timestamp).toLocaleTimeString()}</div>
+            <div class="${r.alert ? 'text-red-400' : 'text-emerald-400'} font-medium">
+              🩸 ${r.cholesterol.toFixed(1)} | 🍬 ${r.sugar.toFixed(1)} | 🌡️ ${r.fever.toFixed(1)}
+            </div>
+          </div>
+          <div class="text-xs text-slate-600">${r.device_id}</div>
+        </div>
+      `).join("");
+  }
+
+  document.getElementById("toggleSave").addEventListener("click", function () {
+    autoSave = !autoSave;
+    this.innerText = `Guardar historial: ${autoSave ? "ON" : "OFF"}`;
+    this.classList.toggle("bg-emerald-600", autoSave);
+    this.classList.toggle("bg-emerald-500", !autoSave);
+  });
+
+  document.getElementById("manualSave").addEventListener("click", async () => {
+    if (!readings.length) return alert("No hay lectura actual");
+    await saveReading(readings[0]);
+    alert("✅ Lectura guardada manualmente");
+  });
+
+  document.getElementById("simulateAlert").addEventListener("click", () => generateReading(true));
+
+  document.getElementById("downloadPDF").addEventListener("click", () => {
+    if (!readings.length) return alert("No hay datos para exportar");
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF();
+    doc.text("Sensor Health — Reporte de Lecturas", 20, 20);
+    doc.text(`Usuario: {{ user.username }}`, 20, 30);
+    doc.text(`Generado: ${new Date().toLocaleString()}`, 20, 38);
+
+    const table = readings.slice(0, 15).map(r => [
+      new Date(r.timestamp).toLocaleString(),
+      r.cholesterol.toFixed(1),
+      r.sugar.toFixed(1),
+      r.fever.toFixed(1),
+      r.alert ? "⚠️ ALERTA" : "Normal"
+    ]);
+    doc.autoTable({
+      head: [["Fecha / Hora", "Colesterol", "Azúcar", "Temperatura", "Estado"]],
+      body: table,
+      startY: 45
+    });
+    doc.save("reporte_sensor_health.pdf");
+  });
+
+  // Autolectura
+  generateReading();
+  setInterval(generateReading, readingInterval);
+
+  // === FUNCIONES ADMIN ===
+  {% if user.role == 'admin' %}
+  const consoleBox = document.getElementById("adminConsole");
+  document.getElementById("globalAlertBtn").addEventListener("click", () => {
+    alert("🚨 Alerta global enviada a todos los usuarios (simulada).");
+  });
+
+  document.getElementById("viewUsersBtn").addEventListener("click", async () => {
+    const res = await fetch("/api/users");
+    const data = await res.json();
+    consoleBox.classList.remove("hidden");
+    consoleBox.innerHTML = "<b>Usuarios registrados:</b><br>" + data.map(u => `${u.username} — ${u.email} — ${u.role}`).join("<br>");
+  });
+
+  document.getElementById("makeAdminBtn").addEventListener("click", async () => {
+    const email = prompt("Ingrese el correo del usuario a ascender a admin:");
+    if (!email) return;
+    const res = await fetch("/api/make_admin", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email })
+    });
+    const data = await res.json();
+    alert(data.message || data.error);
+  });
+  {% endif %}
+</script>
+
+{% endblock %}

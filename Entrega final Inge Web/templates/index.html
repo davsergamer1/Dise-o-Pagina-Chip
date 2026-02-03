@@ -1,0 +1,120 @@
+{% extends 'base.html' %}
+{% block title %}Inicio · Sensor Health{% endblock %}
+{% block content %}
+
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-10 items-center min-h-[75vh]">
+  <!-- 🧠 Columna izquierda: Texto principal -->
+  <div class="space-y-6">
+    <h1 class="text-5xl font-extrabold leading-tight bg-gradient-to-r from-emerald-400 to-indigo-400 bg-clip-text text-transparent">
+      Bienvenido a <span class="text-emerald-400">Sensor Health</span>
+    </h1>
+
+    <p class="text-slate-300 text-lg leading-relaxed">
+      Monitorea tus indicadores de salud desde cualquier dispositivo conectado.  
+      Nuestro sistema recibe y visualiza datos de sensores inteligentes que miden  
+      <span class="text-emerald-400 font-semibold">colesterol</span>,  
+      <span class="text-emerald-400 font-semibold">azúcar</span> y  
+      <span class="text-emerald-400 font-semibold">temperatura corporal</span>  
+      en tiempo real.
+    </p>
+
+    <!-- 🔐 Mostrar botones según si el usuario está logueado -->
+    <div class="flex flex-wrap gap-4 mt-4">
+      {% if user %}
+        <a href="{{ url_for('dashboard') }}" class="px-6 py-3 rounded-2xl bg-emerald-400 text-black font-semibold hover:bg-emerald-300 transition">
+          📊 Ir a tu Panel
+        </a>
+        <a href="{{ url_for('logout') }}" class="px-6 py-3 rounded-2xl glass hover:bg-slate-700/40 transition">
+          🚪 Cerrar sesión
+        </a>
+      {% else %}
+        <a href="{{ url_for('register') }}" class="px-6 py-3 rounded-2xl bg-emerald-400 text-black font-semibold hover:bg-emerald-300 transition">
+          🚀 Crear cuenta gratis
+        </a>
+        <a href="{{ url_for('login') }}" class="px-6 py-3 rounded-2xl glass hover:bg-slate-700/40 transition">
+          🔐 Iniciar sesión
+        </a>
+      {% endif %}
+    </div>
+
+    {% if not user %}
+    <p class="mt-6 text-sm text-slate-400">
+      ¿Solo quieres probar?  
+      <span class="text-indigo-400 font-semibold">Regístrate con un correo temporal</span> y explora el panel en vivo.
+    </p>
+    {% endif %}
+  </div>
+
+  <!-- 💾 Columna derecha: Ejemplo JSON -->
+  <div class="p-6 rounded-2xl glass shadow-lg">
+    <h3 class="font-semibold mb-4 text-lg text-emerald-300">📡 Ejemplo de datos enviados por el chip</h3>
+    <pre class="bg-slate-900/60 text-slate-100 p-5 rounded-lg text-sm overflow-x-auto"><code>{
+  "device_id": "chip-01",
+  "cholesterol": 180.5,
+  "sugar": 95.2,
+  "fever": 37.1,
+  "user_id": "optional_user_id"
+}</code></pre>
+
+    <p class="mt-5 text-slate-300 text-sm leading-relaxed">
+      Estos datos se envían automáticamente al servidor y se muestran  
+      en tu <span class="text-indigo-400 font-semibold">panel de control</span> con alertas y estadísticas.
+    </p>
+  </div>
+</div>
+
+<!-- ⚙️ Sección: Cómo funciona -->
+<section class="mt-20 text-center space-y-4">
+  <h2 class="text-2xl font-semibold text-emerald-400">¿Cómo funciona?</h2>
+  <p class="text-slate-300 max-w-2xl mx-auto leading-relaxed">
+    Sensor Health procesa los datos enviados desde tus sensores y los transforma en gráficas e informes
+    claros para un análisis rápido. Ideal para proyectos de salud, IoT o monitoreo remoto.
+  </p>
+</section>
+
+<!-- ⭐ NUEVA SECCIÓN: Opiniones -->
+<section class="mt-20 text-center space-y-8 bg-slate-800/30 rounded-2xl p-10 border border-slate-700">
+  <h2 class="text-3xl font-bold text-emerald-400">⭐ Opiniones de nuestros usuarios</h2>
+  <p class="text-slate-300 max-w-2xl mx-auto leading-relaxed">
+    Lo que otros usuarios piensan sobre Sensor Health y nuestro sistema de monitoreo.
+  </p>
+
+  {% if comments|length == 0 %}
+    <p class="text-slate-500">Aún no hay comentarios registrados.</p>
+  {% endif %}
+
+  <div class="grid md:grid-cols-3 gap-6 mt-8">
+    {% for c in comments %}
+    <div class="bg-slate-900/40 border border-slate-700 rounded-2xl p-6 shadow-md hover:bg-slate-900/60 transition">
+      <div class="flex justify-center mb-2 text-yellow-400 text-lg">
+        {% for s in range(c.rating) %}⭐{% endfor %}
+      </div>
+      <p class="text-slate-200 italic mb-4">“{{ c.comment }}”</p>
+      <p class="text-emerald-300 font-semibold">{{ c.username }}</p>
+      <p class="text-slate-500 text-sm">{{ c.created_at }}</p>
+    </div>
+    {% endfor %}
+  </div>
+
+  <div class="mt-8">
+    <a href="{{ url_for('feedback') }}"
+       class="px-6 py-3 bg-emerald-400 text-black rounded-xl font-semibold hover:bg-emerald-300 transition">
+       💬 Ver todas las opiniones
+    </a>
+  </div>
+</section>
+
+<!-- 👥 Sección: Quiénes somos -->
+<section id="about" class="mt-20 text-center space-y-6 bg-slate-800/30 rounded-2xl p-10 border border-slate-700">
+  <h2 class="text-3xl font-bold text-emerald-400">¿Quiénes somos?</h2>
+  <p class="text-slate-300 max-w-3xl mx-auto leading-relaxed">
+    Somos un equipo de estudiantes apasionados por la tecnología, la salud y la innovación digital.  
+    <strong>Sensor Health</strong> nació como un proyecto académico para demostrar cómo la conectividad IoT 
+    puede aplicarse al monitoreo médico en tiempo real, priorizando la accesibilidad y el diseño intuitivo.
+  </p>
+  <div class="text-slate-400 text-sm mt-6">
+    © 2025 Sensor Health — Creado por el equipo de desarrollo de Ingeniería Web 💻
+  </div>
+</section>
+
+{% endblock %}

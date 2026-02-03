@@ -1,0 +1,37 @@
+{% extends 'base.html' %}
+{% block title %}Quiénes Somos · Sensor Health{% endblock %}
+{% block content %}
+
+<div class="min-h-[80vh] flex flex-col items-center justify-center text-center space-y-8">
+  <h1 class="text-5xl font-extrabold bg-gradient-to-r from-emerald-400 to-indigo-400 bg-clip-text text-transparent">
+    🌍 Quiénes Somos
+  </h1>
+
+  <p class="max-w-2xl text-slate-300 text-lg">
+    <span class="text-emerald-400 font-semibold">Sensor Health</span> es una plataforma creada para monitorear la salud
+    en tiempo real mediante sensores inteligentes y análisis de datos accesibles para todos.
+  </p>
+
+  <div class="grid md:grid-cols-2 gap-8 max-w-4xl w-full mt-6">
+    <div class="p-6 rounded-2xl glass border border-slate-700 shadow-lg text-left">
+      <h3 class="text-2xl font-semibold text-emerald-400 mb-2">💡 Nuestra Misión</h3>
+      <p class="text-slate-300">
+        Promover el cuidado preventivo de la salud a través de tecnología confiable y fácil de usar,
+        acercando el monitoreo médico al día a día de las personas.
+      </p>
+    </div>
+    <div class="p-6 rounded-2xl glass border border-slate-700 shadow-lg text-left">
+      <h3 class="text-2xl font-semibold text-emerald-400 mb-2">🚀 Nuestra Visión</h3>
+      <p class="text-slate-300">
+        Convertirnos en una herramienta líder en monitoreo biomédico inteligente,
+        integrando IA y análisis predictivo para mejorar la calidad de vida.
+      </p>
+    </div>
+  </div>
+
+  <a href="{{ url_for('dashboard') }}" class="text-indigo-400 hover:underline text-sm mt-10">
+    ⬅️ Volver al Dashboard
+  </a>
+</div>
+
+{% endblock %}

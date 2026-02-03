@@ -1,0 +1,118 @@
+{% extends "base.html" %}
+{% block title %}Opiniones · Sensor Health{% endblock %}
+{% block content %}
+
+<div class="max-w-4xl mx-auto mt-10 space-y-10">
+
+  <!-- 💬 Título principal -->
+  <div class="text-center">
+    <h2 class="text-4xl font-bold text-emerald-400">💬 Opiniones y Calificaciones</h2>
+    <p class="text-slate-400 mt-2">
+      Comparte tu experiencia con <span class="text-emerald-300 font-semibold">Sensor Health</span> y ayuda a mejorar el proyecto.
+    </p>
+  </div>
+
+  <!-- 📝 Formulario de comentarios -->
+  <div class="glass border border-slate-700 p-6 rounded-2xl shadow-lg">
+    <form method="POST" action="{{ url_for('feedback') }}" class="space-y-6">
+      <div>
+        <label for="rating" class="block text-slate-300 mb-2 font-medium">Tu Calificación:</label>
+
+        <!-- 🌟 Estrellas interactivas -->
+        <div class="flex justify-center space-x-2 text-3xl text-slate-500" id="star-container">
+          {% for i in range(1, 6) %}
+            <input type="radio" id="star{{ i }}" name="rating" value="{{ i }}" class="hidden">
+            <label for="star{{ i }}" class="cursor-pointer transition-transform hover:scale-110">★</label>
+          {% endfor %}
+        </div>
+      </div>
+
+      <div>
+        <label for="comment" class="block text-slate-300 mb-2 font-medium">Tu Comentario:</label>
+        <textarea id="comment" name="comment" rows="4"
+                  class="w-full p-3 rounded-xl bg-slate-800/50 border border-slate-700 text-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-400"
+                  placeholder="Escribe aquí tu experiencia o sugerencia..." required></textarea>
+      </div>
+
+      <button type="submit"
+              class="w-full py-3 rounded-xl bg-emerald-400 text-black font-semibold hover:bg-emerald-300 transition">
+        🚀 Enviar Comentario
+      </button>
+    </form>
+  </div>
+
+  <!-- ⭐ Comentarios recientes -->
+  <div>
+    <h3 class="text-2xl font-semibold text-emerald-300 text-center mb-6">📝 Comentarios Recientes</h3>
+
+    {% if comments %}
+      <div class="grid md:grid-cols-2 gap-6">
+        {% for c in comments %}
+          <div class="bg-slate-900/40 border border-slate-700 rounded-2xl p-5 shadow-md hover:bg-slate-900/60 transition">
+            <div class="flex items-center justify-between mb-3">
+              <h5 class="text-emerald-300 font-semibold">{{ c.username }}</h5>
+              <small class="text-slate-500">{{ c.created_at }}</small>
+            </div>
+
+            <div class="mb-2 text-yellow-400 text-lg">
+              {% for i in range(1, 6) %}
+                {% if i <= c.rating %}★{% else %}☆{% endif %}
+              {% endfor %}
+            </div>
+
+            <p class="text-slate-200 italic mb-3">“{{ c.comment }}”</p>
+
+            {% if c.is_owner or c.is_admin %}
+              <form method="POST" action="{{ url_for('delete_comment', comment_id=c._id) }}" class="text-right">
+                <button type="submit"
+                        class="text-sm px-3 py-1 bg-red-500/80 text-white rounded-lg hover:bg-red-500 transition">
+                  🗑️ Eliminar
+                </button>
+              </form>
+            {% endif %}
+          </div>
+        {% endfor %}
+      </div>
+    {% else %}
+      <p class="text-center text-slate-500">Aún no hay comentarios. ¡Sé el primero en dejar tu opinión!</p>
+    {% endif %}
+  </div>
+</div>
+
+<!-- 💫 Efecto visual de llenado progresivo -->
+<script>
+  const stars = document.querySelectorAll('#star-container label');
+  const inputs = document.querySelectorAll('#star-container input');
+
+  stars.forEach((star, index) => {
+    // Hover: llena hasta la estrella sobre la que pasas
+    star.addEventListener('mouseover', () => {
+      stars.forEach((s, i) => s.style.color = i <= index ? 'gold' : '#475569');
+    });
+
+    // Al quitar el cursor: restaura el estado seleccionado
+    star.addEventListener('mouseout', () => {
+      const checked = document.querySelector('#star-container input:checked');
+      if (checked) {
+        stars.forEach((s, i) => s.style.color = i < checked.value ? 'gold' : '#475569');
+      } else {
+        stars.forEach(s => s.style.color = '#475569');
+      }
+    });
+
+    // Al hacer clic: selecciona y fija el color
+    star.addEventListener('click', () => {
+      inputs[index].checked = true;
+      stars.forEach((s, i) => s.style.color = i <= index ? 'gold' : '#475569');
+    });
+  });
+</script>
+
+<style>
+  .glass {
+    background: rgba(30, 41, 59, 0.6);
+    backdrop-filter: blur(12px);
+  }
+</style>
+
+{% endblock %}

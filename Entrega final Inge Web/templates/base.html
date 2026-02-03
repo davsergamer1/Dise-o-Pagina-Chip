@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>{% block title %}Sensor Health - Sensor Dashboard{% endblock %}</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial;
+      background: linear-gradient(180deg,#0b1220 0%, #071028 100%);
+      color: #e6eef8;
+    }
+    .glass { background: rgba(255,255,255,0.03); backdrop-filter: blur(6px); border: 1px solid rgba(255,255,255,0.04); }
+    .accent { background: linear-gradient(90deg,#06b6d4,#7c3aed); -webkit-background-clip: text; color: transparent; }
+    .card-hover:hover { transform: translateY(-6px) scale(1.01); transition: transform .18s ease; }
+  </style>
+</head>
+<body class="min-h-screen">
+  <nav class="max-w-6xl mx-auto p-6 flex items-center justify-between">
+    <a href="{{ url_for('home') }}" class="flex items-center gap-3">
+      <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-emerald-400 to-indigo-500 flex items-center justify-center shadow-lg">🩺</div>
+      <div>
+        <div class="text-lg font-bold">Sensor Health</div>
+        <div class="text-sm text-slate-300">Sensor Health Dashboard</div>
+      </div>
+    </a>
+
+    <div class="flex items-center gap-4">
+      {% if session.user_id %}
+        {# Mostrar Dashboard solo si NO estamos en dashboard ni perfil #}
+        {% if request.endpoint not in ['dashboard', 'profile'] %}
+          <a href="{{ url_for('dashboard') }}" class="px-4 py-2 rounded-xl glass hover:bg-slate-700/40">Dashboard</a>
+        {% endif %}
+
+        {# Mostrar Perfil solo si NO estamos en profile #}
+        {% if request.endpoint != 'profile' %}
+          
+        {% endif %}
+
+        
+      {% else %}
+        <a href="{{ url_for('login') }}" class="px-4 py-2 rounded-xl glass hover:bg-slate-700/40">Login</a>
+        <a href="{{ url_for('register') }}" class="px-4 py-2 rounded-xl bg-emerald-400 text-black hover:bg-emerald-300 transition">Register</a>
+      {% endif %}
+    </div>
+  </nav>
+
+  <main class="max-w-6xl mx-auto p-6">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        <div class="space-y-2 mb-4">
+          {% for cat, msg in messages %}
+            <div class="p-3 rounded-md {% if cat=='error' %}bg-rose-600{% else %}bg-emerald-600{% endif %} text-white">{{ msg }}</div>
+          {% endfor %}
+        </div>
+      {% endif %}
+    {% endwith %}
+    {% block content %}{% endblock %}
+  </main>
+
+  <footer class="max-w-6xl mx-auto p-6 text-center text-slate-400">
+    Built with ❤️ · Demo project
+  </footer>
+</body>
+</html>

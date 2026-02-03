@@ -1,0 +1,61 @@
+{% extends 'base.html' %}
+{% block title %}PQR · Sensor Health{% endblock %}
+{% block content %}
+
+<div class="min-h-[80vh] flex flex-col items-center justify-center text-center space-y-8">
+  <h1 class="text-5xl font-extrabold bg-gradient-to-r from-emerald-400 to-indigo-400 bg-clip-text text-transparent">
+    📬 Peticiones, Quejas y Sugerencias
+  </h1>
+
+  <p class="max-w-2xl text-slate-300 text-lg">
+    En <span class="text-emerald-400 font-semibold">Sensor Health</span> valoramos tus comentarios.
+    Usa este formulario para enviarnos tus inquietudes, sugerencias o reportar un problema.
+  </p>
+
+  <div class="w-full max-w-xl p-8 rounded-2xl glass text-left shadow-lg">
+    <!-- 🔹 FORMULARIO REAL (envía datos a Flask) -->
+    <form method="POST" action="{{ url_for('pqr') }}" class="space-y-5">
+      <div>
+        <label class="block text-slate-400 mb-1">Nombre</label>
+        <input type="text" name="name" required
+          class="w-full p-3 rounded-xl bg-slate-900/60 border border-slate-700 text-slate-200 focus:border-emerald-500 outline-none">
+      </div>
+
+      <div>
+        <label class="block text-slate-400 mb-1">Correo electrónico</label>
+        <input type="email" name="email" required
+          class="w-full p-3 rounded-xl bg-slate-900/60 border border-slate-700 text-slate-200 focus:border-emerald-500 outline-none">
+      </div>
+
+      <div>
+        <label class="block text-slate-400 mb-1">Mensaje</label>
+        <textarea name="message" rows="5" required
+          class="w-full p-3 rounded-xl bg-slate-900/60 border border-slate-700 text-slate-200 focus:border-emerald-500 outline-none"></textarea>
+      </div>
+
+      <button type="submit"
+        class="w-full py-3 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-black font-semibold transition">
+        ✉️ Enviar mensaje
+      </button>
+    </form>
+
+    <!-- Mensajes flash -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        <div class="mt-5">
+          {% for category, message in messages %}
+            <div class="p-3 rounded-xl {{ 'bg-emerald-500/20 text-emerald-300' if category == 'success' else 'bg-red-500/20 text-red-300' }}">
+              {{ message }}
+            </div>
+          {% endfor %}
+        </div>
+      {% endif %}
+    {% endwith %}
+  </div>
+
+  <a href="{{ url_for('dashboard') }}" class="text-indigo-400 hover:underline text-sm mt-6">
+    ⬅️ Volver al Dashboard
+  </a>
+</div>
+
+{% endblock %}

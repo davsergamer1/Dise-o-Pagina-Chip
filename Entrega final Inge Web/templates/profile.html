@@ -1,0 +1,124 @@
+{% extends 'base.html' %}
+{% block title %}Perfil de Usuario{% endblock %}
+{% block content %}
+
+<div class="max-w-2xl mx-auto mt-10 p-6 rounded-2xl glass">
+  <h2 class="text-2xl font-bold mb-4 text-slate-100">👤 Perfil de {{ user.username }}</h2>
+
+  <!-- Imagen de perfil -->
+  <div class="flex flex-col items-center mb-6">
+    <img id="profilePreview"
+         src="{{ user.profile_pic or url_for('static', filename='default_profile.png') }}"
+         alt="Foto de perfil"
+         class="w-32 h-32 rounded-full object-cover border-2 border-emerald-400 shadow-lg mb-3">
+
+    <label for="profilePic"
+           class="cursor-pointer px-3 py-1 bg-emerald-600 hover:bg-emerald-500 text-slate-50 rounded-xl transition">
+      📸 Cambiar foto
+    </label>
+    <input type="file" id="profilePic" accept="image/*" class="hidden">
+  </div>
+
+  <!-- Formulario de configuración -->
+  <form id="profileForm" class="space-y-4">
+    <div>
+      <label class="block text-sm text-slate-400">Nombre de usuario</label>
+      <input type="text" name="username" value="{{ user.username }}"
+             class="w-full p-2 rounded-lg bg-slate-900 border border-slate-700 text-slate-200 focus:border-emerald-500 outline-none">
+    </div>
+
+    <div>
+      <label class="block text-sm text-slate-400">Correo electrónico</label>
+      <input type="email" name="email" value="{{ user.email }}"
+             class="w-full p-2 rounded-lg bg-slate-900 border border-slate-700 text-slate-200 focus:border-emerald-500 outline-none">
+    </div>
+
+    <div id="settings" class="pt-4 border-t border-slate-700">
+      <h3 class="font-semibold text-lg mb-3 text-slate-100">⚙️ Configuración</h3>
+
+      <div class="flex items-center gap-2 mb-3">
+        <input type="checkbox" id="autoSave" name="autoSave"
+               {% if user.autoSave %}checked{% endif %}
+               class="w-4 h-4 accent-emerald-500">
+        <label for="autoSave" class="text-slate-300">Guardar lecturas automáticamente</label>
+      </div>
+
+      <div>
+        <label class="block text-sm text-slate-400">Intervalo de lectura</label>
+        <select name="interval"
+                class="w-full p-2 rounded-lg bg-slate-900 border border-slate-700 text-slate-200 focus:border-emerald-500 outline-none">
+          <option value="5" {% if user.interval == 5 %}selected{% endif %}>Cada 5 segundos</option>
+          <option value="10" {% if user.interval == 10 %}selected{% endif %}>Cada 10 segundos</option>
+          <option value="20" {% if user.interval == 20 %}selected{% endif %}>Cada 20 segundos</option>
+          <option value="60" {% if user.interval == 60 %}selected{% endif %}>Cada minuto</option>
+          <option value="3600" {% if user.interval == 3600 %}selected{% endif %}>Cada hora</option>
+        </select>
+      </div>
+    </div>
+
+    <button type="submit"
+            class="px-5 py-2 bg-emerald-600 hover:bg-emerald-500 text-slate-50 font-semibold rounded-xl transition w-full mt-4">
+      💾 Guardar cambios
+    </button>
+  </form>
+
+  <div class="text-center mt-6">
+    <a href="{{ url_for('dashboard') }}" class="text-emerald-400 hover:underline">⬅️ Volver al Dashboard</a>
+  </div>
+</div>
+
+<!-- Script de manejo del perfil -->
+<script>
+  const profilePicInput = document.getElementById('profilePic');
+  const preview = document.getElementById('profilePreview');
+
+  // 🖼 Previsualización inmediata de la imagen seleccionada
+  profilePicInput.addEventListener('change', e => {
+    const file = e.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = ev => preview.src = ev.target.result;
+      reader.readAsDataURL(file);
+    }
+  });
+
+  // 💾 Guardar cambios del perfil (texto + imagen)
+  document.getElementById('profileForm').addEventListener('submit', async e => {
+    e.preventDefault();
+    const form = e.target;
+
+    // Datos del perfil (nombre, email, configuración)
+    const data = {
+      username: form.username.value,
+      email: form.email.value,
+      autoSave: form.autoSave.checked,
+      interval: form.interval.value
+    };
+
+    // 1️⃣ Actualizar texto
+    const res = await fetch('/update_profile', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify(data)
+    });
+    const json = await res.json();
+    alert(json.message || 'Cambios guardados.');
+
+    // 2️⃣ Subir imagen si hay nueva seleccionada
+    if (profilePicInput.files.length > 0) {
+      const imgData = new FormData();
+      imgData.append('file', profilePicInput.files[0]);
+
+      const upload = await fetch('/upload_profile_pic', {
+        method: 'POST',
+        body: imgData
+      });
+
+      const upJson = await upload.json();
+      if (upJson.path) preview.src = upJson.path;
+      alert(upJson.message || upJson.error || 'Imagen actualizada.');
+    }
+  });
+</script>
+
+{% endblock %}
