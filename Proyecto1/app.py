@@ -460,7 +460,7 @@ def delete_comment(comment_id):
 
 
 # -----------------------------------------
-# 🚀 EJECUCIÓN
+# 🚀 EJECUCIÓN.
 # -----------------------------------------
 if __name__ == '__main__':
     app.run(debug=True)
